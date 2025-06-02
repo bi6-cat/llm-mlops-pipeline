@@ -3,6 +3,6 @@ venv/
 *.pyc
 .DS_Store
 .dvc/cache/
-*.dvc
+# *.dvc
 outputs/
 logs/
