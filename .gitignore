@@ -1,0 +1,8 @@
+__pycache__/
+venv/
+*.pyc
+.DS_Store
+.dvc/cache/
+*.dvc
+outputs/
+logs/
