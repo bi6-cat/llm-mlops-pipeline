@@ -42,7 +42,7 @@ jobs:
             # python scripts/train.py --config configs/config.yaml
 
             echo "Zip outputs"
-            zip -r outputs_${COMMIT_SHA}.zip outputs
+            zip -r outputs_${COMMIT_SHA}.zip old-outputs
 
             echo "Upload to S3"
             aws s3 cp outputs_${COMMIT_SHA}.zip s3://zett-vast-ai/
@@ -83,7 +83,7 @@ jobs:
             fi
 
             echo "Activate venv and start Gradio"
-            source ~/venv-infer/bin/activate
-            nohup python3 gradio_app.py --s3_bucket zett-vast-ai --model_prefix $COMMIT_SHA > gradio.log 2>&1 &
+            
+            nohup python3 gradio_app.py > gradio.log 2>&1 &
             disown
             echo "Gradio app started successfully."
