@@ -83,7 +83,7 @@ jobs:
             fi
 
             echo "Activate venv and start Gradio"
-            
-            nohup python3 gradio_app.py > gradio.log 2>&1 &
+
+            nohup python3 gradio_app.py --model_dir ./outputs > gradio.log 2>&1 &
             disown
             echo "Gradio app started successfully."
