@@ -32,6 +32,7 @@ jobs:
             AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           script: |
             set -e
+            echo "Commit SHA is $COMMIT_SHA"
             cd /workspace/ttcs/llm-mlops-pipeline
             source ./venv/bin/activate
 
