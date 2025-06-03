@@ -33,7 +33,7 @@ jobs:
           script: |
             set -e
             cd /workspace/ttcs/llm-mlops-pipeline
-            source /venv/bin/activate
+            source ./venv/bin/activate
 
             echo "Pull latest code"
             git pull origin develop
