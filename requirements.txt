@@ -13,3 +13,4 @@ datasets==2.19.1
 evaluate==0.4.1
 accelerate==0.29.2
 sentencepiece==0.1.99
+transformers[torch]
