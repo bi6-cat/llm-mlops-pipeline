@@ -1,0 +1,12 @@
+dvc[s3] 
+transformers==4.40.2
+pyyaml
+torch
+scikit-learn
+wandb
+awscli
+docker
+gradio
+boto3
+datasets
+evaluate
