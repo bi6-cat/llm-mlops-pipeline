@@ -1,0 +1,88 @@
+name: MLOps Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+
+env:
+  COMMIT_SHA: ${{ github.sha }}
+
+jobs:
+  train-and-deploy:
+    environment: LLM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code (để có COMMIT_SHA)
+        uses: actions/checkout@v3
+
+      - name: SSH to VAST.AI and train
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ vars.VASTAI_IP }}
+          username: ${{ vars.VASTAI_USER }}
+          port: ${{ vars.VASTAI_PORT }}
+          key: ${{ secrets.VASTAI_SSH_KEY }}
+          timeout: 1800s
+          command_timeout: 1800s
+          envs: |
+            COMMIT_SHA=${{ github.sha }}
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          script: |
+            set -e
+            cd /workspace/ttcs/llm-mlops-pipeline
+            source /venv/bin/activate
+
+            echo "Pull latest code"
+            git pull origin develop
+
+            echo "Train model"
+            # python scripts/train.py --config configs/config.yaml
+
+            echo "Zip outputs"
+            zip -r outputs_${COMMIT_SHA}.zip outputs
+
+            echo "Upload to S3"
+            aws s3 cp outputs_${COMMIT_SHA}.zip s3://zett-vast-ai/outputs/${COMMIT_SHA}/
+
+    #   - name: SSH to EC2 and deploy
+    #     uses: appleboy/ssh-action@v0.1.7
+    #     with:
+    #       host: ${{ vars.EC2_IP }}
+    #       username: ${{ vars.EC2_USER }}
+    #       key: ${{ secrets.EC2_SSH_KEY }}
+    #       timeout: 1800s
+    #       command_timeout: 1800s
+    #       envs: |
+    #         COMMIT_SHA=${{ github.sha }}
+
+    #       script: |
+    #         set -e
+    #         echo "Starting deployment on EC2 instance..."
+    #         cd /home/ubuntu/project/llm-finetune-mlops
+
+    #         echo "Pull latest code"
+    #         git pull origin develop
+
+    #         echo "Download outputs"
+    #         aws s3 cp s3://zett-vast-ai/outputs/${COMMIT_SHA}/outputs_${COMMIT_SHA}.zip ./outputs.zip
+
+    #         echo "Unzip outputs"
+    #         unzip -o outputs.zip -d outputs
+
+    #         echo "Kill existing Gradio"
+    #         pids=$(ps -ef | grep gradio_app.py | grep -v grep | awk '{print $2}')
+    #         if [ -n "$pids" ]; then
+    #             kill -9 $pids
+    #             echo "Killed Gradio app processes."
+    #         else
+    #             echo "No Gradio app process found."
+    #         fi
+
+    #         echo "Activate venv and start Gradio"
+    #         source ~/venv-infer/bin/activate
+    #         nohup python3 gradio_app.py --s3_bucket zett-vast-ai --model_prefix $COMMIT_SHA > gradio.log 2>&1 &
+    #         disown
+    #         echo "Gradio app started successfully."
