@@ -1,0 +1,33 @@
+# Dockerfile.train (version tối ưu caching)
+
+FROM python:3.9-slim
+
+# 1. Thiết lập thư mục làm việc
+WORKDIR /workspace
+
+# 2. Cài pip và các thư viện cơ bản (nếu cần)
+RUN pip install --upgrade pip
+
+# 3. Chỉ COPY file requirements.txt trước
+COPY requirements.txt .
+
+# 4. Chạy pip install chỉ dựa trên requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 5. Bây giờ mới COPY toàn bộ code (như scripts/, configs/, v.v.)
+COPY . .
+
+# 6. Thiết lập biến môi trường COMMIT_SHA
+ARG COMMIT_SHA
+ENV COMMIT_SHA=${COMMIT_SHA}
+
+# 7. Entry point giữ nguyên
+ENTRYPOINT ["bash", "-lc", "\
+  echo '>>> DVC pull data'; \
+  dvc pull -r s3remote data/SA/train.csv.dvc data/SA/test.csv.dvc; \
+  echo '>>> Start training'; \
+  python scripts/fine_tune.py --config configs/config.yaml; \
+  echo '>>> Upload model to S3'; \
+  aws s3 sync outputs/ s3://my-viet-sentiment/outputs/${COMMIT_SHA}; \
+  echo '>>> Done'; \
+"]
