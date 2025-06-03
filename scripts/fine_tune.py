@@ -64,11 +64,12 @@ def main():
     model_name    = config["model_name"]
     data_dir      = config["data_dir"]
     output_dir    = config["output_dir"]
-    batch_size    = config["batch_size"]
-    lr            = config["learning_rate"]
-    epochs        = config["epochs"]
-    eval_steps    = config["eval_steps"]
-    logging_steps = config["logging_steps"]
+    batch_size    = int(config["batch_size"])
+    lr            = float(config["learning_rate"]) 
+    epochs        = int(config["epochs"])
+    eval_steps    = int(config["eval_steps"])
+    logging_steps = int(config["logging_steps"])
+
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -106,7 +107,7 @@ def main():
     # 7. Thiết lập TrainingArguments
     training_args = TrainingArguments(
         output_dir=output_dir,
-        evaluation_strategy="steps",
+        evaluation_strategy="epoch",
         eval_steps=eval_steps,
         save_strategy="epoch",
         learning_rate=lr,
