@@ -26,8 +26,8 @@ jobs:
       - name: Install DVC & pandas
         run: |
           pip install --upgrade pip
-          pip install --quiet awscli==1.32.98 botocore==1.34.98
-          pip install --quiet dvc[s3]==3.51.0 pandas==2.1.3
+          pip install --progress-bar off --no-warn-script-location awscli==1.32.98 botocore==1.34.98
+          pip install --progress-bar off --no-warn-script-location dvc[s3]==3.51.0 pandas==2.1.3
 
 
       - name: DVC pull from S3
@@ -67,30 +67,31 @@ jobs:
             export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             export WANDB_API_KEY=$WANDB_API_KEY
 
-            dvc remote add -f -d s3remote s3://my-viet-dvc-store
-            dvc remote modify s3remote access_key_id $AWS_ACCESS_KEY_ID
-            dvc remote modify s3remote secret_access_key $AWS_SECRET_ACCESS_KEY
             
             mkdir -p /workspace/ttcs/
             cd /workspace/ttcs/
             
             if [ ! -d "llm-mlops-pipeline" ]; then
-              echo "Cloning repository to VAST.AI instance..."
-              git clone https://github.com/bi6-cat/llm-mlops-pipeline
+            echo "Cloning repository to VAST.AI instance..."
+            git clone https://github.com/bi6-cat/llm-mlops-pipeline
             else
-              echo "Repository already exists, skipping clone step."
+            echo "Repository already exists, skipping clone step."
             fi
-
+            
             cd llm-mlops-pipeline
             echo "Pull latest code"
             git pull origin develop
-
+            
             if [ ! -d "venv" ]; then
-                echo "Creating virtual environment..."
-                python3 -m venv venv
+            echo "Creating virtual environment..."
+            python3 -m venv venv
             fi
-
+            
             source venv/bin/activate
+            
+            dvc remote add -f -d s3remote s3://my-viet-dvc-store
+            dvc remote modify s3remote access_key_id $AWS_ACCESS_KEY_ID
+            dvc remote modify s3remote secret_access_key $AWS_SECRET_ACCESS_KEY
 
             echo "Installing dependencies..."
             pip install --upgrade pip
