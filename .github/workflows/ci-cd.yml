@@ -69,9 +69,13 @@ jobs:
             
             mkdir -p /workspace/ttcs/
             cd /workspace/ttcs/
-
-            echo "Cloning repository to VAST.AI instance..."
-            git clone https://github.com/bi6-cat/llm-mlops-pipeline
+            
+            if [ ! -d "llm-mlops-pipeline" ]; then
+              echo "Cloning repository to VAST.AI instance..."
+              git clone https://github.com/bi6-cat/llm-mlops-pipeline
+            else
+              echo "Repository already exists, skipping clone step."
+            fi
 
             cd llm-mlops-pipeline
             echo "Pull latest code"
