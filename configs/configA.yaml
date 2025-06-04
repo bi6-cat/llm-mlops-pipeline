@@ -1,6 +1,6 @@
 model_name: "distilbert-base-uncased"
-data_dir: "data/imdb"
-output_dir: "outputs_A"
+data_dir: "data/SA"
+output_dir: "outputs"
 batch_size: 16
 learning_rate: 5e-5
 epochs: 5          # tăng từ 3 lên 5
