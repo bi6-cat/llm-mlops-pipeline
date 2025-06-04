@@ -100,7 +100,7 @@ jobs:
             dvc pull -r s3remote data/SA/train.csv.dvc data/SA/test.csv.dvc
 
             echo "Train model"
-            python scripts/train.py --config configs/configA.yaml
+            python scripts/fine_tune.py --config configs/configA.yaml
 
             echo "Zip outputs"
             zip -r outputs_${COMMIT_SHA}.zip outputs
