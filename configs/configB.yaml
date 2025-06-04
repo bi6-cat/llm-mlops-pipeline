@@ -1,7 +1,7 @@
 model_name: "bert-base-uncased"
 data_dir: "data/SA"
 output_dir: "outputs"
-batch_size: 24 
+batch_size: 20 
 learning_rate: 5e-5 # giữ nguyên
 epochs: 3         # giữ nguyên
 eval_steps: 500
