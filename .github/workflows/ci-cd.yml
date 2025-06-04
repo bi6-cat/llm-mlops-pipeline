@@ -35,7 +35,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          dvc remote add -d s3remote s3://my-viet-dvc-store
+          dvc remote add -f -d s3remote s3://my-viet-dvc-store
           dvc remote modify s3remote access_key_id $AWS_ACCESS_KEY_ID
           dvc remote modify s3remote secret_access_key $AWS_SECRET_ACCESS_KEY
           dvc pull -r s3remote data/SA/train.csv.dvc data/SA/test.csv.dvc
