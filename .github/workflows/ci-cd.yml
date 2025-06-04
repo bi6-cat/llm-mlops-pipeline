@@ -17,6 +17,20 @@ jobs:
       - name: Checkout code (để có COMMIT_SHA)
         uses: actions/checkout@v3
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+
+      - name: Install data validation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas
+
+      - name: Data Validation
+        run: |
+          python scripts/validate_data.py --train data/SA/train.csv --test data/SA/test.csv
+
       - name: SSH to VAST.AI and train
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -31,11 +45,16 @@ jobs:
             AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           script: |
             set -e
+            
             COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
             echo "Commit SHA (Short) từ GitHub Actions: ${COMMIT_SHA}"
             
             cd /workspace/ttcs/llm-mlops-pipeline
             source ./venv/bin/activate
+
+            echo "Starting training on VAST.AI instance..."
+            echo "Install dependencies"
+            pip install -r requirements-train.txt
 
             echo "Pull latest code"
             git pull origin develop
@@ -60,6 +79,7 @@ jobs:
           command_timeout: 1800s
           script: |
             set -e
+
             COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
             echo "Commit SHA (Short) từ GitHub Actions: ${COMMIT_SHA}"
             
@@ -75,6 +95,9 @@ jobs:
             echo "Unzip outputs"
             unzip -o outputs.zip -d outputs
 
+            echo "Installing dependencies..."
+            pip install -r requirements-infer.txt
+            
             echo "Kill existing Gradio"
             pids=$(ps -ef | grep gradio_app.py | grep -v grep | awk '{print $2}')
             if [ -n "$pids" ]; then
@@ -84,8 +107,7 @@ jobs:
                 echo "No Gradio app process found."
             fi
 
-            echo "Activate venv and start Gradio"
-
+            echo "Starting Gradio app..."
             nohup python3 gradio_app.py --model_dir ./outputs > gradio.log 2>&1 &
             disown
             echo "Gradio app started successfully."
