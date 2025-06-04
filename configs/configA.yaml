@@ -1,0 +1,8 @@
+model_name: "distilbert-base-uncased"
+data_dir: "data/SA"
+output_dir: "outputs"
+batch_size: 24 # tăng từ 16 lên 24
+learning_rate: 5e-5
+epochs: 2          # giảm từ 3 xuống 2
+eval_steps: 500
+logging_steps: 10

@@ -4,7 +4,6 @@ import yaml
 import pandas as pd
 import numpy as np
 import torch
-from evaluate import load
 from datasets import Dataset
 from transformers import (
     AutoTokenizer,
@@ -34,18 +33,18 @@ def tokenize_fn(examples, tokenizer):
     """
     Hàm tokenization cho mỗi batch.
     Input: một example dict chứa "text" và "label".
-    Output: dict with tokenized fields.
+    Output: dict với trường input_ids, attention_mask, v.v.
     """
     return tokenizer(examples["text"], truncation=True)
 
 def compute_metrics(eval_pred):
     """
-    Tính accuracy dựa trên logits và labels, dùng thư viện 'evaluate'.
+    Tính accuracy dựa trên logits và labels bằng numpy.
     """
-    metric = load("accuracy")
     logits, labels = eval_pred
     preds = np.argmax(logits, axis=-1)
-    return metric.compute(predictions=preds, references=labels)
+    accuracy = (preds == labels).astype(np.float32).mean().item()
+    return {"accuracy": accuracy}
 
 def main():
     parser = argparse.ArgumentParser()
@@ -53,7 +52,7 @@ def main():
         "--config",
         type=str,
         default="configs/config.yaml",
-        help="Đường dẫn đến file config YAML"
+        help="Đường dẫn đến file cấu hình YAML"
     )
     args = parser.parse_args()
 
@@ -69,7 +68,6 @@ def main():
     epochs        = int(config["epochs"])
     eval_steps    = int(config["eval_steps"])
     logging_steps = int(config["logging_steps"])
-
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -90,7 +88,7 @@ def main():
         lambda ex: tokenize_fn(ex, tokenizer), batched=True
     )
 
-    # 5. Data collator cho dynamic padding
+    # 5. Data collator để tự động padding mỗi batch
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
     # 6. Khởi W&B run
