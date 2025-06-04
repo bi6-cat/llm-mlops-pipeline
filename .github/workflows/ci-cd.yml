@@ -66,7 +66,6 @@ jobs:
             export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             export WANDB_API_KEY=$WANDB_API_KEY
-
             
             mkdir -p /workspace/ttcs/
             cd /workspace/ttcs/
@@ -75,6 +74,8 @@ jobs:
             git clone https://github.com/bi6-cat/llm-mlops-pipeline
 
             cd llm-mlops-pipeline
+            echo "Pull latest code"
+            git pull origin develop
 
             if [ ! -d "venv" ]; then
                 echo "Creating virtual environment..."
@@ -86,9 +87,6 @@ jobs:
             echo "Installing dependencies..."
             pip install --upgrade pip
             pip install -r requirements-train.txt
-
-            echo "Pull latest code"
-            git pull origin develop
 
             echo "Download data"
             dvc pull -r s3remote data/SA/train.csv.dvc data/SA/test.csv.dvc
