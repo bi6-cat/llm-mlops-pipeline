@@ -31,11 +31,8 @@ jobs:
             AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           script: |
             set -e
-            GH_ACTION_FULL_SHA="${{ github.sha }}"
-            GH_ACTION_SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-
-            echo "Commit SHA (Full) từ GitHub Actions: ${GH_ACTION_FULL_SHA}"
-            echo "Commit SHA (Short) từ GitHub Actions: ${GH_ACTION_SHORT_SHA}"
+            COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+            echo "Commit SHA (Short) từ GitHub Actions: ${COMMIT_SHA}"
             
             cd /workspace/ttcs/llm-mlops-pipeline
             source ./venv/bin/activate
@@ -47,45 +44,48 @@ jobs:
             # python scripts/train.py --config configs/config.yaml
 
             echo "Zip outputs"
-            zip -r outputs_${GH_ACTION_SHORT_SHA}.zip old-outputs
+            zip -r outputs_${COMMIT_SHA}.zip old-outputs
 
             echo "Upload to S3"
-            aws s3 cp outputs_${GH_ACTION_SHORT_SHA}.zip s3://zett-vast-ai/
+            aws s3 cp outputs_${COMMIT_SHA}.zip s3://zett-vast-ai/
             echo "Training and upload completed successfully."
 
-      # - name: SSH to EC2 and deploy
-      #   uses: appleboy/ssh-action@v0.1.7
-      #   with:
-      #     host: ${{ vars.EC2_IP }}
-      #     username: ${{ vars.EC2_USER }}
-      #     key: ${{ secrets.EC2_SSH_KEY }}
-      #     timeout: 1800s
-      #     command_timeout: 1800s
-      #     script: |
-      #       set -e
-      #       echo "Starting deployment on EC2 instance..."
-      #       cd /home/ubuntu/project/llm-mlops-pipeline
+      - name: SSH to EC2 and deploy
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ vars.EC2_IP }}
+          username: ${{ vars.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          timeout: 1800s
+          command_timeout: 1800s
+          script: |
+            set -e
+            COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+            echo "Commit SHA (Short) từ GitHub Actions: ${COMMIT_SHA}"
+            
+            echo "Starting deployment on EC2 instance..."
+            cd /home/ubuntu/project/llm-mlops-pipeline
 
-      #       echo "Pull latest code"
-      #       git pull origin develop
+            echo "Pull latest code"
+            git pull origin develop
 
-      #       echo "Download outputs"
-      #       aws s3 cp s3://zett-vast-ai/outputs_${COMMIT_SHA}.zip ./outputs.zip
+            echo "Download outputs"
+            aws s3 cp s3://zett-vast-ai/outputs_${COMMIT_SHA}.zip ./outputs.zip
 
-      #       echo "Unzip outputs"
-      #       unzip -o outputs.zip -d outputs
+            echo "Unzip outputs"
+            unzip -o outputs.zip -d outputs
 
-      #       echo "Kill existing Gradio"
-      #       pids=$(ps -ef | grep gradio_app.py | grep -v grep | awk '{print $2}')
-      #       if [ -n "$pids" ]; then
-      #           kill -9 $pids
-      #           echo "Killed Gradio app processes."
-      #       else
-      #           echo "No Gradio app process found."
-      #       fi
+            echo "Kill existing Gradio"
+            pids=$(ps -ef | grep gradio_app.py | grep -v grep | awk '{print $2}')
+            if [ -n "$pids" ]; then
+                kill -9 $pids
+                echo "Killed Gradio app processes."
+            else
+                echo "No Gradio app process found."
+            fi
 
-      #       echo "Activate venv and start Gradio"
+            echo "Activate venv and start Gradio"
 
-      #       nohup python3 gradio_app.py --model_dir ./outputs > gradio.log 2>&1 &
-      #       disown
-      #       echo "Gradio app started successfully."
+            nohup python3 gradio_app.py --model_dir ./outputs > gradio.log 2>&1 &
+            disown
+            echo "Gradio app started successfully."
