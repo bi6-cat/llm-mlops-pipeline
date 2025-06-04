@@ -150,6 +150,7 @@ jobs:
 
             echo "Unzip outputs"
             unzip -o outputs.zip -d outputs
+            rm outputs.zip
 
             echo "Installing dependencies..."
             pip install -r requirements-infer.txt
