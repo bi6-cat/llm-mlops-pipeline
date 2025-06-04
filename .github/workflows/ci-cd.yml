@@ -66,6 +66,10 @@ jobs:
             export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             export WANDB_API_KEY=$WANDB_API_KEY
+
+            dvc remote add -f -d s3remote s3://my-viet-dvc-store
+            dvc remote modify s3remote access_key_id $AWS_ACCESS_KEY_ID
+            dvc remote modify s3remote secret_access_key $AWS_SECRET_ACCESS_KEY
             
             mkdir -p /workspace/ttcs/
             cd /workspace/ttcs/
