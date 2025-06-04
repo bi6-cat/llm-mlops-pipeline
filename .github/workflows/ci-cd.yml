@@ -32,7 +32,7 @@ jobs:
           script: |
             set -e
             GH_ACTION_FULL_SHA="${{ github.sha }}"
-            GH_ACTION_SHORT_SHA="${{ github.sha_short }}"
+            GH_ACTION_SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
 
             echo "Commit SHA (Full) từ GitHub Actions: ${GH_ACTION_FULL_SHA}"
             echo "Commit SHA (Short) từ GitHub Actions: ${GH_ACTION_SHORT_SHA}"
