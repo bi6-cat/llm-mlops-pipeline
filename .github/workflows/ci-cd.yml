@@ -100,7 +100,7 @@ jobs:
             dvc pull -r s3remote data/SA/train.csv.dvc data/SA/test.csv.dvc
 
             echo "Train model"
-            # python scripts/fine_tune.py --config configs/configB.yaml
+            # python scripts/fine_tune.py --config configs/config.yaml
 
             cd outputs
             last_ckpt=$(ls -d checkpoint-* 2>/dev/null | sort -V | tail -n 1)
