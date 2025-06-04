@@ -76,10 +76,10 @@ jobs:
             dvc pull -r s3remote data/SA/train.csv.dvc data/SA/test.csv.dvc
 
             echo "Train model"
-            # python scripts/train.py --config configs/config.yaml
+            python scripts/train.py --config configs/configA.yaml
 
             echo "Zip outputs"
-            zip -r outputs_${COMMIT_SHA}.zip old-outputs
+            zip -r outputs_${COMMIT_SHA}.zip outputs
 
             echo "Upload to S3"
             aws s3 cp outputs_${COMMIT_SHA}.zip s3://zett-vast-ai/
