@@ -62,11 +62,20 @@ jobs:
             COMMIT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
             echo "Commit SHA (Short) từ GitHub Actions: ${COMMIT_SHA}"
             
-            cd /workspace/ttcs/llm-mlops-pipeline
-            source ./venv/bin/activate
+            mkdir -p /workspace/ttcs/llm-mlops-pipeline
 
-            echo "Starting training on VAST.AI instance..."
-            echo "Install dependencies"
+            echo "Cloning repository to VAST.AI instance..."
+            git clone https://github.com/bi6-cat/llm-mlops-pipeline.git /workspace/ttcs/llm-mlops-pipeline
+
+            if [ ! -d "venv" ]; then
+                echo "Creating virtual environment..."
+                python3 -m venv venv
+            fi
+
+            source venv/bin/activate
+
+            echo "Installing dependencies..."
+            pip install --upgrade pip
             pip install -r requirements-train.txt
 
             echo "Pull latest code"
