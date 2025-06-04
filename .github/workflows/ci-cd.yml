@@ -21,11 +21,27 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: 3.12
+          architecture: 'x64'
 
-      - name: Install data validation dependencies
+      - name: Install DVC & pandas
         run: |
-          python -m pip install --upgrade pip
-          pip install pandas
+          pip install --upgrade pip
+          pip install dvc[s3] pandas
+
+      - name: Configure DVC remote (S3)
+        run: |
+          mkdir -p ~/.dvc
+          cat << 'EOF' > ~/.dvc/config.local
+          ['remote "s3remote"']
+              url = s3://my-viet-dvc-store
+              access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}
+              secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              region = ap-southeast-1
+          EOF
+
+      - name: DVC Pull data (train & test)
+        run: |
+          dvc pull -r s3remote data/SA/train.csv.dvc data/SA/test.csv.dvc
 
       - name: Data Validation
         run: |
@@ -58,6 +74,9 @@ jobs:
 
             echo "Pull latest code"
             git pull origin develop
+
+            echo "Download data"
+            dvc pull -r s3remote data/SA/train.csv.dvc data/SA/test.csv.dvc
 
             echo "Train model"
             # python scripts/train.py --config configs/config.yaml
