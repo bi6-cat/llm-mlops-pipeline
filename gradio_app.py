@@ -6,17 +6,6 @@ import gradio as gr
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
 def find_model_root(base_dir: str):
-    """
-    Tìm thư mục con đầu tiên trong base_dir mà chứa file 'config.json' hoặc 'pytorch_model.bin'.
-    Nếu base_dir chính nó có file 'config.json', trả về base_dir.
-    Ngược lại, đệ quy tìm trong các thư mục con 1 cấp.
-
-    Args:
-        base_dir (str): Thư mục gốc (ví dụ './outputs').
-
-    Returns:
-        str: Đường dẫn tới thư mục con chứa model, hoặc base_dir nếu đã đúng.
-    """
     # Kiểm nếu base_dir có config.json (model HF) hoặc pytorch_model.bin
     if os.path.isfile(os.path.join(base_dir, "config.json")) or \
        os.path.isfile(os.path.join(base_dir, "pytorch_model.bin")):
@@ -38,18 +27,6 @@ def find_model_root(base_dir: str):
     )
 
 def load_local_model(model_dir: str):
-    """
-    Load một model Hugging Face và tokenizer từ thư mục model_dir.
-    model_dir có thể là './outputs' hoặc './outputs/<commit_sha>'.
-
-    Hàm sẽ tìm tự động thư mục con chứa file 'config.json' hoặc 'pytorch_model.bin'.
-
-    Args:
-        model_dir (str): Thư mục gốc nơi chứa model (có thể là ngăn chứa nhiều phiên bản).
-
-    Returns:
-        tokenizer, model
-    """
     # Tìm thư mục thực sự chứa model
     root = find_model_root(model_dir)
 
@@ -62,18 +39,7 @@ def load_local_model(model_dir: str):
 
     return tokenizer, model
 
-def classify_movie_review(review: str, tokenizer, model):
-    """
-    Thực hiện phân loại một review phim.
-
-    Args:
-        review (str): Chuỗi văn bản review.
-        tokenizer: AutoTokenizer
-        model: AutoModelForSequenceClassification
-
-    Returns:
-        str: Kết quả dạng "positive (xx.x%)" hoặc "negative (xx.x%)".
-    """
+def classify_movie_review(review: str, tokenizer, model, threshold: float = 0.7):
     if not isinstance(review, str) or review.strip() == "":
         return "Vui lòng nhập một đoạn review hợp lệ."
 
@@ -90,11 +56,18 @@ def classify_movie_review(review: str, tokenizer, model):
 
     probs = torch.softmax(logits, dim=-1).cpu().numpy()[0]
     pred_idx = int(np.argmax(probs))
+    confidence = probs[pred_idx]
+
+    # Nếu độ tin cậy thấp hơn ngưỡng, trả lời mơ hồ
+    if confidence < threshold:
+        return (
+            f"Không chắc chắn về dự đoán (độ tin cậy: {confidence * 100:.1f}%). "
+            "Nội dung có thể không phù hợp hoặc mô hình chưa được huấn luyện đủ."
+        )
+
     label_map = {0: "negative", 1: "positive"}
     label = label_map[pred_idx]
-    confidence = probs[pred_idx] * 100
-
-    return f"{label} ({confidence:.1f}%)"
+    return f"{label} ({confidence * 100:.1f}%)"
 
 def main():
     parser = argparse.ArgumentParser(description="Gradio app to serve sentiment classification model")
