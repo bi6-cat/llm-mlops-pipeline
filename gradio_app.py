@@ -102,7 +102,7 @@ def main():
         fn=infer,
         inputs=gr.Textbox(lines=3, placeholder="Nhập đoạn review phim..."),
         outputs="text",
-        title="IMDb Sentiment Classifier",
+        title="IMDb Sentiment Classifier (Phim)",
         description="Ứng dụng phân loại sentiment (positive/negative) cho review phim."
     )
 
